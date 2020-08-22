@@ -5,9 +5,14 @@ This project is for learning purposes only, and because I enjoy implementing thi
 
 ## Features:
 - Sequential model
-- Dense (fully connected) layer
-- ReLU activation
-- Sigmoid activation
-- Tanh activation
-- MSE loss
-- Binary cross-entropy loss
+- Layers:
+  - Dense (fully connected) layer
+- Activations:
+  - ReLU activation
+  - Sigmoid activation
+  - Tanh activation
+- Losses:
+  - MSE loss
+  - Binary cross-entropy loss
+- Metrics:
+  - Binary Accuracy
