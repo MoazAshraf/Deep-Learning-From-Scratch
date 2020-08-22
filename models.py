@@ -105,3 +105,10 @@ class Sequential(object):
             
             if verbose:
                 print(f"Epoch {epoch}:\tloss={loss:.4f}")
+    
+    def predict(self, X):
+        """
+        Generates output predictions for the given input samples
+        """
+
+        return self.call(X)

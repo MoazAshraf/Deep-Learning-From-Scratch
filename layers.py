@@ -25,8 +25,8 @@ class Dense(object):
         """
 
         self.input_shape = input_shape
-        self.weights = np.random.randn(self.units, input_shape[0]) * 0.01
-        self.biases = np.zeros((self.units, 1))
+        self.weights = np.random.randn(input_shape[0], self.units) * 0.01
+        self.biases = np.zeros((1, self.units))
     
     def __call__(self, *args, **kwargs):
         return self.call(*args, **kwargs)
@@ -39,7 +39,7 @@ class Dense(object):
         This is generally used during training.
         """
 
-        z = X @ self.weights.T + self.biases.T
+        z = X @ self.weights + self.biases
         if self.activation is not None:
             a = self.activation(z)
         if cache:
@@ -58,11 +58,11 @@ class Dense(object):
         
         # calculates the gradients of the loss with respect to the layer's weights and biases
         dL_dz = dL_da * self.activation_deriv(self.cache['linear'])
-        dL_dw = dL_dz.T @ X
-        dL_db = np.sum(dL_dz, axis=0, keepdims=True).T / m
+        dL_dw = X.T @ dL_dz
+        dL_db = np.sum(dL_dz, axis=0, keepdims=True) / m
 
         # calculates the gradients of the loss with respect to the input
-        dL_dX = dL_dz @ self.weights
+        dL_dX = dL_dz @ self.weights.T
 
         return dL_dw, dL_db, dL_dX
     
