@@ -44,7 +44,7 @@ class Sequential(object):
 
         if isinstance(loss, str):
             self.loss = LOSSES[loss]()
-        elif isinstance(loss, Loss):
+        else:
             self.loss = loss
         
         self.learning_rate = learning_rate

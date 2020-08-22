@@ -1,5 +1,5 @@
 import numpy as np
-from activations import ACTIVATIONS, ACTIVATION_DERIVS
+from activations import ACTIVATIONS, Activation
 
 
 class Dense(object):
@@ -9,12 +9,10 @@ class Dense(object):
 
     def __init__(self, units, activation=None, input_shape=None):
         self.units = units
-        if type(activation) is str:
-            self.activation = ACTIVATIONS[activation]
-            self.activation_deriv = ACTIVATION_DERIVS[activation]
+        if isinstance(activation, str):
+            self.activation = ACTIVATIONS[activation]()
         else:
-            # TODO
-            pass
+            self.activation = activation
         
         self.input_shape = input_shape
         self.output_shape = (self.units,)
@@ -55,7 +53,7 @@ class Dense(object):
         """
         
         # calculates the gradients of the loss with respect to the layer's weights and biases
-        dL_dz = dL_da * self.activation_deriv(self.cache['linear'])
+        dL_dz = dL_da * self.activation.derivative(self.cache['linear'])
         dL_dw = X.T @ dL_dz
         dL_db = np.sum(dL_dz, axis=0, keepdims=True)
 
