@@ -8,13 +8,11 @@ def binary_crossentropy_loss(y_true, y_pred):
     return np.float64(np.squeeze(loss))
 
 def binary_crossentropy_loss_deriv(y_true, y_pred):
-    m = y_true.shape[0]
-    deriv = -(y_true / y_pred - (1 - y_true) / (1 - y_pred)) / m
+    deriv = -(y_true / y_pred - (1 - y_true) / (1 - y_pred))
     return deriv
 
 def mean_squared_error_deriv(y_true, y_pred):
-    m = y_true.shape[0]
-    return 2 * (y_true - y_pred) / m
+    return 2 * (y_true - y_pred)
 
 LOSSES = {
     'mse': mean_squared_error,
