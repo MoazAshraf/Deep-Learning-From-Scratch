@@ -1,4 +1,5 @@
-from losses import LOSSES, Loss
+from losses import LOSSES
+from metrics import METRICS
 
 
 class Sequential(object):
@@ -37,7 +38,7 @@ class Sequential(object):
             X = layer(X)
         return X
     
-    def compile(self, loss, learning_rate=0.01):
+    def compile(self, loss, learning_rate=0.01, metrics=None):
         """
         Configures the model for training, evaluation and/or prediction
         """
@@ -47,6 +48,14 @@ class Sequential(object):
         else:
             self.loss = loss
         
+        self.metrics = []
+        if metrics is not None:
+            for metric in metrics:
+                if isinstance(metric, str):
+                    self.metrics.append(METRICS[metric]())
+                else:
+                    self.metrics.append(metric)
+
         self.learning_rate = learning_rate
         
         self.compiled = True
@@ -62,9 +71,15 @@ class Sequential(object):
         y_pred = self.call(X)
         loss = self.loss(y, y_pred)
 
-        # TODO: calculate other metrics
+        # calculate other metrics
+        metrics = [metric(y, y_pred) for metric in self.metrics]
 
-        return loss
+        s = f"loss={loss:.4f}"
+        for i, metric in enumerate(metrics):
+            s += f"\t{self.metrics[i].name}={metric:.4f}"
+        print(s)
+
+        return loss, metrics
     
     def fit_step(self, X, y):
         """
@@ -89,9 +104,13 @@ class Sequential(object):
             dL_dw, dL_db, dL_da = layer.compute_gradients(dL_da, activations[i])
             layer.update_params(dL_dw, dL_db, self.learning_rate)
         
-        loss = self.loss(y, self.call(X))
+        y_pred = self.call(X)
+        loss = self.loss(y, y_pred)
 
-        return loss
+        # calculate other metrics
+        metrics = [metric(y, y_pred) for metric in self.metrics]
+
+        return loss, metrics
     
     def fit(self, X, y, epochs=10, verbose=True):
         """
@@ -99,10 +118,14 @@ class Sequential(object):
         """
 
         for epoch in range(1, epochs+1):
-            loss = self.fit_step(X, y)
+            loss, metrics = self.fit_step(X, y)
             
             if verbose:
-                print(f"Epoch {epoch}:\tloss={loss:.4f}")
+                s = f"loss={loss:.4f}"
+                for i, metric in enumerate(metrics):
+                    s += f"\t{self.metrics[i].name}={metric:.4f}"
+                
+                print(f"Epoch {epoch}:\t{s}")
     
     def predict(self, X):
         """

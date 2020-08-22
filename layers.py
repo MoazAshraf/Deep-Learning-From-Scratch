@@ -1,5 +1,5 @@
 import numpy as np
-from activations import ACTIVATIONS, Activation
+from activations import ACTIVATIONS
 
 
 class Dense(object):
