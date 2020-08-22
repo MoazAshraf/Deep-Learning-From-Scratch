@@ -1,4 +1,4 @@
-from losses import LOSSES, LOSS_DERIVS
+from losses import LOSSES, Loss
 
 
 class Sequential(object):
@@ -42,12 +42,10 @@ class Sequential(object):
         Configures the model for training, evaluation and/or prediction
         """
 
-        if type(loss) is str:
-            self.loss = LOSSES[loss]
-            self.loss_deriv = LOSS_DERIVS[loss]
-        else:
-            # TODO
-            pass
+        if isinstance(loss, str):
+            self.loss = LOSSES[loss]()
+        elif isinstance(loss, Loss):
+            self.loss = loss
         
         self.learning_rate = learning_rate
         
@@ -81,7 +79,7 @@ class Sequential(object):
             activations.append(a)
         
         # backward propagation
-        dL_da = self.loss_deriv(y, a)
+        dL_da = self.loss.derivative(y, a)
         
         for i in range(len(self.layers)-1, -1, -1):
             layer = self.layers[i]
