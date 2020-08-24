@@ -60,10 +60,8 @@ class Dense(object):
 
         # calculates the gradients of the loss with respect to the layer's weights
         dL_dw = X.T @ dL_dz
-
-        # TODO:
-        # if self.kernel_regularizer is not None:
-        #     dL_dw += self.kernel_regularizer.derivative(self.weights)
+        if self.kernel_regularizer is not None:
+            dL_dw += self.kernel_regularizer.derivative(self.weights)
 
         # calculates the gradients of the loss with respect to the layer's biases
         dL_db = np.sum(dL_dz, axis=0, keepdims=True)
