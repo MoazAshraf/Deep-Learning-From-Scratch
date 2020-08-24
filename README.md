@@ -16,3 +16,7 @@ This project is for learning purposes only, and because I enjoy implementing thi
   - Binary cross-entropy loss
 - Metrics:
   - Binary Accuracy
+- Regularizers:
+  - L1
+  - L2
+  - L1-L2
