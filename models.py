@@ -130,8 +130,8 @@ class Sequential(object):
         return self.call(X)
     
     def format_loss_and_metrics(self, loss, metrics):
-        s = f"loss={np.squeeze(loss):.4f}"
+        s = f"loss={loss:.4f}"
         for i, metric in enumerate(metrics):
-            s += f"\t{self.metrics[i].name}={np.squeeze(metric):.4f}"
+            s += f"\t{self.metrics[i].name}={metric:.4f}"
         
         return s
