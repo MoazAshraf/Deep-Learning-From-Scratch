@@ -55,13 +55,15 @@ class Dense(object):
         X is the input the layer (e.g. the activations of the previous layer)
         """
         
+        m = X.shape[0]
+
         # calculates the gradients of the loss with respect to the layer's linear output
         dL_dz = dL_da * self.activation.derivative(self.cache['linear'])
 
         # calculates the gradients of the loss with respect to the layer's weights
         dL_dw = X.T @ dL_dz
         if self.kernel_regularizer is not None:
-            dL_dw += self.kernel_regularizer.derivative(self.weights)
+            dL_dw += self.kernel_regularizer.derivative(self.weights) / m
 
         # calculates the gradients of the loss with respect to the layer's biases
         dL_db = np.sum(dL_dz, axis=0, keepdims=True)

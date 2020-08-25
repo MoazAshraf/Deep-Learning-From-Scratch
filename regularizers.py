@@ -20,9 +20,17 @@ class L1(Regularizer):
         self.l1 = l1
 
     def call(self, x):
+        """
+        Note: you have to divide the result by m, the batch size, if you don't want l1 to depend on m
+        """
+
         return self.l1 * np.sum(np.abs(x))
     
     def derivative(self, x):
+        """
+        Note: you have to divide the result by m, the batch size, if you don't want l1 to depend on m
+        """
+
         dx = (x > 0).astype(np.int) * 2 - 1
         dx[x == 0] = 0
         return self.l1 * dx
@@ -39,9 +47,17 @@ class L2(Regularizer):
         self.l2 = l2
     
     def call(self, x):
+        """
+        Note: you have to divide the result by m, the batch size, if you don't want l2 to depend on m
+        """
+
         return self.l2 * np.sum(np.square(x))
     
     def derivative(self, x):
+        """
+        Note: you have to divide the result by m, the batch size, if you don't want l2 to depend on m
+        """
+
         return self.l2 * 2 * x
 
 
@@ -60,9 +76,17 @@ class L1L2(Regularizer):
         self.l2_regularizer = L2(l2)
     
     def call(self, x):
+        """
+        Note: you have to divide the result by m, the batch size, if you don't want l1 and l2 to depend on m
+        """
+
         self.l1_regularizer.l1, self.l2_regularizer.l2 = self.l1, self.l2
         return self.l1_regularizer(x) + self.l2_regularizer(x)
     
     def derivative(self, x):
+        """
+        Note: you have to divide the result by m, the batch size, if you don't want l1 and l2 to depend on m
+        """
+
         self.l1_regularizer.l1, self.l2_regularizer.l2 = self.l1, self.l2
         return self.l1_regularizer.derivative(x) + self.l2_regularizer.derivative(x)

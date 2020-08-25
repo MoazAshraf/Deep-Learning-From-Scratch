@@ -14,7 +14,8 @@ class MSE(Loss):
         return np.mean(np.square(y_true - y_pred))
     
     def derivative(self, y_true, y_pred):
-        return 2 * (y_true - y_pred)
+        m = y_true.shape[0]
+        return 2 * (y_true - y_pred) / m
 
 
 class BinaryCrossentropy(Loss):
@@ -23,7 +24,8 @@ class BinaryCrossentropy(Loss):
         return np.squeeze(-(y_true.T @ np.log(y_pred) + (1 - y_true).T @ np.log(1 - y_pred)) / m)
     
     def derivative(self, y_true, y_pred):
-        return (1 - y_true) / (1 - y_pred) - y_true / y_pred
+        m = y_true.shape[0]
+        return ((1 - y_true) / (1 - y_pred) - y_true / y_pred) / m
 
 
 LOSSES = {
