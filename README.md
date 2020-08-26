@@ -14,6 +14,7 @@ This project is for learning purposes only, and because I enjoy implementing thi
 - Losses:
   - MSE loss
   - Binary cross-entropy loss
+  - Categorical cross-entropy loss
 - Metrics:
   - Binary Accuracy
 - Regularizers:
