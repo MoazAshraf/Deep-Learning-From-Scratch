@@ -18,6 +18,16 @@ class Sigmoid(Activation):
         return a * (1 - a)
 
 
+class Softmax(Activation):
+    def call(self, x):
+        exp_x = np.exp(x)
+        return exp_x / np.sum(exp_x, axis=1, keepdims=True)
+    
+    def derivative(self, x):
+        a = self.call(x)
+        return a * (1 - a)
+
+
 class Tanh(Activation):
     def call(self, x):
         return np.tanh(x)

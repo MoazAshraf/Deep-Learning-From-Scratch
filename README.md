@@ -11,6 +11,7 @@ This project is for learning purposes only, and because I enjoy implementing thi
   - ReLU activation
   - Sigmoid activation
   - Tanh activation
+  - Softmax activation
 - Losses:
   - MSE loss
   - Binary cross-entropy loss
