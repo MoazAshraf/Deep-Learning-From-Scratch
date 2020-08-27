@@ -43,6 +43,8 @@ class Dense(object):
         z = X @ self.weights + self.biases
         if self.activation is not None:
             a = self.activation(z)
+        else:
+            a = z
         if cache:
             self.cache = {'linear': z}
         return a

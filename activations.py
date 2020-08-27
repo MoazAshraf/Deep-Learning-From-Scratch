@@ -20,8 +20,12 @@ class Sigmoid(Activation):
 
 class Softmax(Activation):
     def call(self, x):
-        exp_x = np.exp(x)
-        return exp_x / np.sum(exp_x, axis=1, keepdims=True)
+        # note that softmax(x + c) = softmax(x) for any constant c
+        # we use this trick to avoid overflow
+
+        z = x - np.max(x, axis=-1, keepdims=True)
+        exp_z = np.exp(z) 
+        return exp_z / exp_z.sum(axis=-1, keepdims=True)
     
     def derivative(self, x):
         a = self.call(x)
@@ -45,6 +49,7 @@ class ReLU(Activation):
 
 ACTIVATIONS = {
     'sigmoid': Sigmoid,
+    'softmax': Softmax,
     'tanh': Tanh,
-    'relu': ReLU,
+    'relu': ReLU
 }

@@ -39,7 +39,11 @@ class BinaryCrossentropy(Loss):
 class CategoricalCrossentropy(Loss):
     def call(self, y_true, y_pred):
         m = y_true.shape[0]
-        return -np.sum(y_true * np.log(y_pred)) / m
+
+        try:
+            return -np.sum(y_true * np.log(y_pred)) / m
+        except RuntimeWarning:
+            print(y_pred)
     
     def derivative(self, y_true, y_pred):
         """
@@ -47,7 +51,10 @@ class CategoricalCrossentropy(Loss):
         """
 
         m = y_true.shape[0]
-        return -(y_true / y_pred) / m
+        try:
+            return -(y_true / y_pred) / m
+        except RuntimeWarning:
+            print(y_pred)
 
 
 LOSSES = {

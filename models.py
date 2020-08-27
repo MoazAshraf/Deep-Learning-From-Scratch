@@ -116,11 +116,26 @@ class Sequential(object):
         Trains the model for a fixed number of epochs
         """
 
+        history = []
+
         for epoch in range(1, epochs+1):
             loss, metrics = self.fit_step(X, y)
             
             if verbose:
                 print(f"Epoch {epoch}:\t{self.format_loss_and_metrics(loss, metrics)}")
+            
+            parameters = []
+            
+            for layer in self.layers:
+                parameters.append({"weights": layer.weights, "biases": layer.biases})
+
+            history.append({
+                "loss": loss,
+                "metrics": metrics,
+                "parameters": parameters
+            })
+        
+        return history
     
     def predict(self, X):
         """
