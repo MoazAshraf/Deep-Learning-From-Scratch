@@ -45,7 +45,7 @@ class ReLU(Activation):
         return np.maximum(0, x)
 
     def derivative(self, x):
-        return (x > 0).astype(np.float64)
+        return (x > 0).astype(np.float32)
 
 ACTIVATIONS = {
     'sigmoid': Sigmoid,

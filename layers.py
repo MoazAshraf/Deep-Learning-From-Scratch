@@ -41,6 +41,7 @@ class Dense(object):
         """
 
         z = X @ self.weights + self.biases
+        
         if self.activation is not None:
             a = self.activation(z)
         else:
@@ -60,7 +61,11 @@ class Dense(object):
         m = X.shape[0]
 
         # calculates the gradients of the loss with respect to the layer's linear output
-        dL_dz = dL_da * self.activation.derivative(self.cache['linear'])
+        if self.activation is not None:
+            dL_dz = dL_da * self.activation.derivative(self.cache['linear'])
+        else:
+            dL_dz = dL_da
+        
 
         # calculates the gradients of the loss with respect to the layer's weights
         dL_dw = X.T @ dL_dz
@@ -72,6 +77,7 @@ class Dense(object):
 
         # calculates the gradients of the loss with respect to the input
         dL_dX = dL_dz @ self.weights.T
+        
 
         return dL_dw, dL_db, dL_dX
     

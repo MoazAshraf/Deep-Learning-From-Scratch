@@ -117,6 +117,7 @@ class Sequential(object):
         """
 
         history = []
+        prev_loss = np.inf
 
         for epoch in range(1, epochs+1):
             loss, metrics = self.fit_step(X, y)
@@ -124,16 +125,22 @@ class Sequential(object):
             if verbose:
                 print(f"Epoch {epoch}:\t{self.format_loss_and_metrics(loss, metrics)}")
             
-            parameters = []
-            
-            for layer in self.layers:
-                parameters.append({"weights": layer.weights, "biases": layer.biases})
+            if loss > prev_loss:
+                print("")
+                self.learning_rate = float(input(f"LOSS INCREASED! Enter a learning rate smaller than {self.learning_rate}:"))
+                break
+            prev_loss = loss
 
-            history.append({
-                "loss": loss,
-                "metrics": metrics,
-                "parameters": parameters
-            })
+            # parameters = []
+            
+            # for layer in self.layers:
+            #     parameters.append({"weights": layer.weights, "biases": layer.biases, "activations": layer.activation(layer.cache['linear'])})
+
+            # history.append({
+            #     "loss": loss,
+            #     "metrics": metrics,
+            #     "parameters": parameters
+            # })
         
         return history
     

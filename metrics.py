@@ -23,9 +23,8 @@ class CategoricalAccuracy(Metric):
         self.name = "accuracy"
     
     def call(self, y_true, y_pred):
-        y_pred = (y_pred >= 0.5).astype(np.int)
-        y_pred = np.argmax(y_pred, axis=1)
-        y_true = np.argmax(y_true, axis=1)
+        y_pred = np.argmax(y_pred, axis=-1)
+        y_true = np.argmax(y_true, axis=-1)
         return np.mean((y_true == y_pred).astype(np.int))
 
 

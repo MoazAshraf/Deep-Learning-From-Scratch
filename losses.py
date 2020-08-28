@@ -19,7 +19,7 @@ class MSE(Loss):
         """
 
         m = y_true.shape[0]
-        return 2 * (y_true - y_pred) / m
+        return -2 * (y_true - y_pred) / m
 
 
 class BinaryCrossentropy(Loss):
@@ -37,24 +37,23 @@ class BinaryCrossentropy(Loss):
 
 
 class CategoricalCrossentropy(Loss):
-    def call(self, y_true, y_pred):
+    def call(self, y_true, y_pred, epsilon=1e-12):
         m = y_true.shape[0]
 
-        try:
-            return -np.sum(y_true * np.log(y_pred)) / m
-        except RuntimeWarning:
-            print(y_pred)
+        y_pred = y_pred / np.sum(y_pred, axis=-1, keepdims=True)
+        y_pred = np.clip(y_pred, epsilon, 1. - epsilon)
+        return -np.sum(y_true * np.log(y_pred)) / m
     
-    def derivative(self, y_true, y_pred):
+    def derivative(self, y_true, y_pred, epsilon=1e-12):
         """
         Returns the derivative with respect to y_pred
         """
 
         m = y_true.shape[0]
-        try:
-            return -(y_true / y_pred) / m
-        except RuntimeWarning:
-            print(y_pred)
+
+        y_pred = y_pred / np.sum(y_pred, axis=-1, keepdims=True)
+        y_pred = np.clip(y_pred, epsilon, 1. - epsilon)
+        return -(y_true / y_pred) / m
 
 
 LOSSES = {
