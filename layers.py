@@ -142,16 +142,8 @@ class Softmax(Layer):
     
     def backward(self, dJ_dZ):
         # dJ_dX = dJ_dZ * Z - (dJ_dZ @ Z.T * np.eye(m)) @ Z  # -> needs a lot (m^2) of memory
-        # TODO: find a better vectorized implementation
         
-        # this computes dJ_dZ[i] * Z[i] - dJ_dZ[i] @ Z[i].T @ Z[i] for each row a little bit
-        # more efficiently
         Z = self.forward(self.cache['X'])
-        m = Z.shape[0]
-        
-        mult = np.zeros((m, 1))
-        for i in range(m):
-            mult[i] = dJ_dZ[i] @ Z[i]
-        
-        dJ_dX = dJ_dZ * Z - mult * Z
-        return dJ_dX
+
+        dJ_dX = (dJ_dZ - np.sum(dJ_dZ * Z, axis=-1, keepdims=True)) * Z
+        return dJ_dX    

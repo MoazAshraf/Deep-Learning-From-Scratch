@@ -19,12 +19,14 @@ class Model(object):
         If cache is True, the input to each layer is stored so that it can be used later during
         backprop
         """
-        pass
+
+        return X
     
     def configure(self, loss, learning_rate, metrics=None):
         """
         Configure the model for training or evaluation
         """
+
         self.loss = loss
         self.learning_rate = learning_rate
         self.metrics = metrics
@@ -36,6 +38,7 @@ class Model(object):
         Performs backpropagation through the model and updates the model's parameters using the
         training batch (X, Y).
         """
+
         pass
     
     def train(self, X, Y, epochs=10, verbose=True, *args, **kwargs):
@@ -43,6 +46,7 @@ class Model(object):
         Performs backpropagation through the model and updates the model's parameters using the
         training set for the given number of epochs (X, Y).
         """
+        
         for epoch in range(epochs):
             self.train_step(X, Y, self.learning_rate, *args, **kwargs)
             
