@@ -1,37 +1,22 @@
 import numpy as np
 
 
-class Metric(object):
-    def __call__(self, *args, **kwargs):
-        return self.call(*args, **kwargs)
-
-    def call(self, *args, **kwargs):
-        pass
-
-
-class BinaryAccuracy(Metric):
-    def __init__(self):
-        self.name = "accuracy"
-
-    def call(self, y_true, y_pred):
-        y_pred = (y_pred >= 0.5).astype(np.int)
-        return np.mean((y_true == y_pred).astype(np.int))
+def binary_accuracy(Y_true, Y_pred):
+    """
+    Expects Y_true to contain values of either 0 or 1 and Y_pred to be the probability
+    of being 1
+    """
+    Y_pred = (Y_pred >= 0.5).astype(np.int)
+    accuracy = np.mean((Y_true == Y_pred).astype(np.float32))
+    return accuracy
 
 
-class CategoricalAccuracy(Metric):
-    def __init__(self):
-        self.name = "accuracy"
-    
-    def call(self, y_true, y_pred):
-        y_pred = np.argmax(y_pred, axis=-1)
-        y_true = np.argmax(y_true, axis=-1)
-        return np.mean((y_true == y_pred).astype(np.int))
-
-
-METRICS = {
-    "binary_accuracy": BinaryAccuracy,
-    "categorical_accuracy": CategoricalAccuracy,
-    # "acc": BinaryAccuracy
-}
-
-print(METRICS)
+def categorical_accuracy(Y_true, Y_pred):
+    """
+    Expects Y_true to be one-hot encoded and Y_pred to be normalized probabilities (e.g.
+    the output of a Softmax layer)
+    """
+    Y_true = np.argmax(Y_true, axis=-1)
+    Y_pred = np.argmax(Y_pred, axis=-1)
+    accuracy = np.mean((Y_true == Y_pred).astype(np.float32))
+    return accuracy

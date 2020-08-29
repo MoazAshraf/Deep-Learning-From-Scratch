@@ -2,63 +2,55 @@ import numpy as np
 
 
 class Loss(object):
-    def __call__(self, *args, **kwargs):
-        return self.call(*args, **kwargs)
-
-    def call(self, *args, **kwargs):
+    def __call__(self, X, *args, **kwargs):
+        return self.forward(X, *args, **kwargs)
+    
+    def forward(self, Y_true, Y_pred, *args, **kwargs):
+        pass
+    
+    def backward(self, Y_true, Y_pred, *args, **kwargs):
+        """
+        Computes the gradient of the loss with respect to Y_pred
+        """
         pass
 
 
 class MSE(Loss):
-    def call(self, y_true, y_pred):
-        return np.mean(np.square(y_true - y_pred))
+    def forward(self, Y_true, Y_pred):
+        m = Y_true.shape[0]
+        J = np.mean(np.square(Y_pred - Y_true))
+        return J
     
-    def derivative(self, y_true, y_pred):
-        """
-        Returns the derivative with respect to y_pred
-        """
-
-        m = y_true.shape[0]
-        return -2 * (y_true - y_pred) / m
+    def backward(self, Y_true, Y_pred):
+        m = Y_true.shape[0]
+        dJ_dY_pred = 2 * (Y_pred - Y_true) / m
+        return dJ_dY_pred
 
 
 class BinaryCrossentropy(Loss):
-    def call(self, y_true, y_pred):
-        m = y_true.shape[0]
-        return np.squeeze(-(y_true.T @ np.log(y_pred) + (1 - y_true).T @ np.log(1 - y_pred)) / m)
+    def forward(self, Y_true, Y_pred, epsilon=1e-12):
+        Y_pred = np.clip(Y_pred, epsilon, 1. - epsilon)
+        J = -np.mean(Y_true * np.log(Y_pred) + (1 - Y_true) * np.log(1 - Y_pred))
+        return J
     
-    def derivative(self, y_true, y_pred):
-        """
-        Returns the derivative with respect to y_pred
-        """
-
-        m = y_true.shape[0]
-        return ((1 - y_true) / (1 - y_pred) - y_true / y_pred) / m
+    def backward(self, Y_true, Y_pred, epsilon=1e-12):
+        Y_pred = np.clip(Y_pred, epsilon, 1. - epsilon)
+        m = Y_true.shape[0]
+        dJ_dY_pred = ((1 - Y_true) / (1 - Y_pred) - Y_true / Y_pred) / m
+        return dJ_dY_pred
 
 
 class CategoricalCrossentropy(Loss):
-    def call(self, y_true, y_pred, epsilon=1e-12):
-        m = y_true.shape[0]
-
-        y_pred = y_pred / np.sum(y_pred, axis=-1, keepdims=True)
-        y_pred = np.clip(y_pred, epsilon, 1. - epsilon)
-        return -np.sum(y_true * np.log(y_pred)) / m
+    """
+    Expects Y_true to be one-hot encoded and Y_pred to be normalized probabilities (e.g.
+    the output of a Softmax layer)
+    """
+    def forward(self, Y_true, Y_pred, epsilon=1e-10):
+        m = Y_true.shape[0]
+        J =  -np.sum(Y_true * np.log(Y_pred)) / m
+        return J
     
-    def derivative(self, y_true, y_pred, epsilon=1e-12):
-        """
-        Returns the derivative with respect to y_pred
-        """
-
-        m = y_true.shape[0]
-
-        y_pred = y_pred / np.sum(y_pred, axis=-1, keepdims=True)
-        y_pred = np.clip(y_pred, epsilon, 1. - epsilon)
-        return -(y_true / y_pred) / m
-
-
-LOSSES = {
-    'mse': MSE,
-    'mean_squared_error': MSE,
-    'binary_crossentropy': BinaryCrossentropy,
-    'categorical_crossentropy': CategoricalCrossentropy
-}
+    def backward(self, Y_true, Y_pred, epsilon=1e-10):
+        m = Y_true.shape[0]
+        dJ_dY_pred = -(Y_true / Y_pred) / m
+        return dJ_dY_pred
