@@ -18,3 +18,7 @@ This project is for learning purposes only, and because I enjoy implementing thi
 - Metrics:
   - Binary Accuracy
   - Categorical Accuracy
+- Regularization:
+  - L1
+  - L2
+  - L1-L2

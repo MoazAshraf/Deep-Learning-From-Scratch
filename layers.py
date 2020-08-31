@@ -71,11 +71,12 @@ class Linear(Layer):
     Just your regular fully connected layer
     """
     
-    def __init__(self, units, *args, **kwargs):
+    def __init__(self, units, kernel_regularizer=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
         self.units = units
         self.output_shape = (units,)
+        self.kernel_regularizer = kernel_regularizer
     
     def build(self, weights=None, biases=None, *args, **kwargs):
         super().build(*args, **kwargs)
@@ -97,9 +98,15 @@ class Linear(Layer):
     
     @Layer.backward
     def backward(self, dJ_dZ):
-        # compute the gradients with respect to the weights and biases
+        # compute the gradients with respect to the weights
         X = self.cache['X']
         dJ_dW = X.T @ dJ_dZ
+        # add regularization gradients
+        if self.kernel_regularizer is not None:
+            m = dJ_dZ.shape[0]
+            dJ_dW += self.kernel_regularizer.backward(self.weights) / m
+        
+        # compute the gradients with respect to the biases
         dJ_db = np.sum(dJ_dZ, axis=0, keepdims=True)
         
         # compute the gradients with respect to the input

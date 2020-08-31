@@ -25,14 +25,61 @@ class Model(object):
     def configure(self, loss, learning_rate, metrics=None):
         """
         Configure the model for training or evaluation
+
+        metrics should be a dictionary with the name each of the metric as the key and the
+        function that computes the metric as the value
         """
 
         self.loss = loss
         self.learning_rate = learning_rate
         self.metrics = metrics
         if self.metrics is None:
-            self.metrics = []
-    
+            self.metrics = {}
+
+    def _evaluate(self, Y_train, Y_train_pred, Y_val=None, Y_val_pred=None):
+        metrics = {}
+        metrics['loss'] = self.loss(Y_train, Y_train_pred)
+        if Y_val is not None:
+            metrics['val_loss'] = self.loss(Y_val, Y_val_pred)
+
+        for name, metric in self.metrics.items():
+            metrics[name] = metric(Y_train, Y_train_pred)
+            if Y_val is not None:
+                metrics[f"val_{name}"] = metric(Y_val, Y_val_pred)
+        
+        return metrics
+        
+    def evaluate(self, X, Y, X_val=None, Y_val=None):
+        """
+        Evaluates the configured loss and metrics on the given data batch
+
+        Returns the loss and the metrics
+        """
+
+        # make predictions on the training set
+        Y_pred = self.forward(X)
+
+        # make predictions on the validation set
+        if X_val is not None:
+            Y_val_pred = self.forward(X_val)
+        else:
+            Y_val_pred = None
+        
+        # compute and print the metrics
+        metrics = self._evaluate(Y, Y_pred, Y_val, Y_val_pred)
+        eval_info = self.format_metrics(metrics)
+        print(eval_info)
+        return metrics
+
+    def format_metrics(self, metrics):
+        """
+        metrics should be a dictionary with the name each of the metric as the key and the
+        value of the metric as the dictionary value
+        """
+
+        s = '\t'.join([f"{name}={value:.6f}" for name, value in metrics.items()])
+        return s
+
     def train_step(self, X, Y, learning_rate, *args, **kwargs):
         """
         Performs backpropagation through the model and updates the model's parameters using the
@@ -41,7 +88,7 @@ class Model(object):
 
         pass
     
-    def train(self, X, Y, epochs=10, verbose=True, *args, **kwargs):
+    def train(self, X, Y, X_val=None, Y_val=None, epochs=10, verbose=True, *args, **kwargs):
         """
         Performs backpropagation through the model and updates the model's parameters using the
         training set for the given number of epochs (X, Y).
@@ -51,36 +98,20 @@ class Model(object):
             self.train_step(X, Y, self.learning_rate, *args, **kwargs)
             
             if verbose:
-                # compute the new predictions, the loss and specified metrics
+                # make predictions on the training set
                 Y_pred = self.forward(X)
-                J = self.loss(Y, Y_pred)
-                metric_values = [metric(Y, Y_pred) for metric in self.metrics]
 
-                epoch_info = f"Epoch {epoch+1:02}\t" + self.format_loss_and_metrics(J, metric_values)
+                # make predictions on the validation set
+                if X_val is not None:
+                    Y_val_pred = self.forward(X_val)
+                else:
+                    Y_val_pred = None
+                
+                # compute and print the metrics
+                metrics = self._evaluate(Y, Y_pred, Y_val, Y_val_pred)
+                epoch_info = f"Epoch {epoch+1:02}\t" + self.format_metrics(metrics)
                 print(epoch_info)
-    
-    def evaluate(self, X, Y):
-        """
-        Evaluates the configured loss and metrics on the given data batch
 
-        Returns the loss and the metrics
-        """
-
-        Y_pred = self.forward(X)
-        J = self.loss(Y, Y_pred)
-        metric_values = [metric(Y, Y_pred) for metric in self.metrics]
-
-        eval_info = self.format_loss_and_metrics(J, metric_values)
-        print(eval_info)
-
-        return J, metric_values
-
-    def format_loss_and_metrics(self, J, metric_values):
-        metric_names = [metric.__name__ for metric in self.metrics]
-        
-        s = f"loss={J:.6f} \t"
-        s += '\t'.join([f"{name}={value:.6f}" for name, value in zip(metric_names, metric_values)])
-        return s
 
 class Sequential(Model):
     def __init__(self, layers=None):
