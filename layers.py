@@ -14,6 +14,7 @@ class Layer(object):
         """
         Initializes the layer's parameters that depend on the input shape
         """
+
         pass
     
     def __call__(self, X, *args, **kwargs):
@@ -26,10 +27,19 @@ class Layer(object):
         If cache is True, the input is stored so that it can be used later during
         backprop
         """
+
+        Z = self._forward(X, *args, **kwargs)
+
         if cache:
             self.cache['X'] = X
+            self.cache['Z'] = Z
+        
+        return Z
+
+    def _forward(self, X):
+        return X
     
-    def backward(self, dJ_dZ):
+    def backward(self, dJ_dZ, *args, **kwargs):
         """
         Computes the gradients (backward pass) of the loss function with respect to the
         layer's parameters (if any) and the layer's input
@@ -42,9 +52,13 @@ class Layer(object):
         tuple should contain the gradients with respect to the layer's parameters in the
         same order of the arguments in update_parameters()
         """
-        pass
+
+        return self._backward(dJ_dZ, *args, **kwargs)
     
-    def update_parameters(self, learning_rate, *args, **kwargs):
+    def _backward(self, dJ_dZ):
+        return dJ_dZ
+
+    def update_parameters(self, learning_rate):
         """
         Updates the layer's parameters
         """
@@ -63,9 +77,7 @@ class Linear(Layer):
         self.units = units
         self.output_shape = (units,)
     
-    def build(self, weights=None, biases=None, *args, **kwargs):
-        super().build(*args, **kwargs)
-        
+    def build(self, weights=None, biases=None, *args, **kwargs):        
         if weights is not None:
             self.weights = weights
         else:
@@ -76,15 +88,14 @@ class Linear(Layer):
         else:
             self.biases = np.zeros((1, self.units))
     
-    def forward(self, X, *args, **kwargs):
-        super().forward(X, *args, **kwargs)
-        
+    def _forward(self, X):
         Z = X @ self.weights + self.biases
         return Z
     
-    def backward(self, dJ_dZ):
+    def _backward(self, dJ_dZ):
         # compute the gradients with respect to the weights and biases
-        dJ_dW = self.cache['X'].T @ dJ_dZ
+        X = self.cache['X']
+        dJ_dW = X.T @ dJ_dZ
         dJ_db = np.sum(dJ_dZ, axis=0, keepdims=True)
         
         # compute the gradients with respect to the input
@@ -98,32 +109,42 @@ class Linear(Layer):
 
 
 class ReLU(Layer):
-    def build(self, *args, **kwargs):
+    def build(self):
         self.output_shape = self.input_shape
         
-    def forward(self, X, *args, **kwargs):
-        super().forward(X, *args, **kwargs)
-        
+    def _forward(self, X):
         Z = np.maximum(0, X)
         return Z
     
-    def backward(self, dJ_dZ):
-        dJ_dX = dJ_dZ * np.heaviside(self.cache['X'], 0)
+    def _backward(self, dJ_dZ):
+        X = self.cache['X']
+        dJ_dX = dJ_dZ * np.heaviside(X, 0)
         return dJ_dX
 
+
+class Tanh(Layer):
+    def build(self):
+        self.output_shape = self.input_shape
+    
+    def _forward(self, X, *args, **kwargs):
+        Z = np.tanh(X)
+        return Z
+    
+    def _backward(self, dJ_dZ):
+        Z = self.cache['Z']
+        dJ_dX = dJ_dZ * (1 - np.square(Z))
+        return dJ_dX
 
 class Sigmoid(Layer):
     def build(self, *args, **kwargs):
         self.output_shape = self.input_shape
         
-    def forward(self, X, *args, **kwargs):
-        super().forward(X, *args, **kwargs)
-        
+    def _forward(self, X, *args, **kwargs):
         Z = 1 / (1 + np.exp(-X))
         return Z
     
-    def backward(self, dJ_dZ):
-        Z = self.forward(self.cache['X'])
+    def _backward(self, dJ_dZ):
+        Z = self.cache['Z']
         dJ_dX = dJ_dZ * Z * (1 - Z)
         return dJ_dX
 
@@ -132,18 +153,15 @@ class Softmax(Layer):
     def build(self, *args, **kwargs):
         self.output_shape = self.input_shape
         
-    def forward(self, X, *args, **kwargs):
-        super().forward(X, *args, **kwargs)
-        
+    def _forward(self, X, *args, **kwargs):
         X = X - np.max(X, axis=-1, keepdims=True)
         exp_X = np.exp(X)
         Z = exp_X / exp_X.sum(axis=-1, keepdims=True)
         return Z
     
-    def backward(self, dJ_dZ):
+    def _backward(self, dJ_dZ):
         # dJ_dX = dJ_dZ * Z - (dJ_dZ @ Z.T * np.eye(m)) @ Z  # -> needs a lot (m^2) of memory
         
-        Z = self.forward(self.cache['X'])
-
+        Z = self.cache['Z']
         dJ_dX = (dJ_dZ - np.sum(dJ_dZ * Z, axis=-1, keepdims=True)) * Z
-        return dJ_dX    
+        return dJ_dX
