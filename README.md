@@ -8,6 +8,7 @@ This project is for learning purposes only, and because I enjoy implementing thi
 - Layers:
   - Linear (fully connected) layer
   - ReLU
+  - Tanh
   - Sigmoid
   - Softmax
 - Loss Functions:
