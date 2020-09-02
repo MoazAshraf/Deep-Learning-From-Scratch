@@ -1,4 +1,5 @@
 import numpy as np
+from initializers import he_normal
 
 
 class Layer(object):
@@ -72,20 +73,21 @@ class Linear(Layer):
     Just your regular fully connected layer
     """
     
-    def __init__(self, units, kernel_regularizer=None, *args, **kwargs):
+    def __init__(self, units, kernel_regularizer=None, kernel_initializer=he_normal, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
         self.units = units
         self.output_shape = (units,)
         self.kernel_regularizer = kernel_regularizer
+        self.kernel_initializer = kernel_initializer
     
     def build(self, weights=None, biases=None, *args, **kwargs):
         super().build(*args, **kwargs)
-        
+
         if weights is not None:
             self.weights = weights
         else:
-            self.weights = np.random.randn(self.input_shape[0], self.units) * np.sqrt(2 / self.input_shape[0])
+            self.weights = self.kernel_initializer((self.input_shape[0], self.units))
             
         if biases is not None:
             self.biases = biases
