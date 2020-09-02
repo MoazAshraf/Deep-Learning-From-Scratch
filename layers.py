@@ -22,17 +22,18 @@ class Layer(object):
     
     @staticmethod
     def forward(f):
-        def forward(self, X, cache=False, *args, **kwargs):
+        def forward(self, X, training=False, *args, **kwargs):
             """
             Computes the layer's output (forward pass)
             
-            If cache is True, the input is stored so that it can be used later during
-            backprop
+            If training is True, the input and output of each layer is stored so that it
+            can be used later during backprop. Also, some layers such as Dropout behave
+            differently if training is set to True.
             """
 
-            Z = f(self, X, *args, **kwargs)
+            Z = f(self, X, training=training, *args, **kwargs)
 
-            if cache:
+            if training:
                 self.cache['X'] = X
                 self.cache['Z'] = Z
             
@@ -41,7 +42,7 @@ class Layer(object):
     
     @staticmethod
     def backward(f):
-        def backward(self, dJ_dZ, *args, **kwargs):
+        def backward(self, dJ_dZ, training=False, *args, **kwargs):
             """
             Computes the gradients (backward pass) of the loss function with respect to the
             layer's parameters (if any) and the layer's input
@@ -55,7 +56,7 @@ class Layer(object):
             same order of the arguments in update_parameters()
             """
 
-            return f(self, dJ_dZ, *args, **kwargs)
+            return f(self, dJ_dZ, training=training, *args, **kwargs)
         return backward
 
     def update_parameters(self, learning_rate):
@@ -92,12 +93,12 @@ class Linear(Layer):
             self.biases = np.zeros((1, self.units))
     
     @Layer.forward
-    def forward(self, X):
+    def forward(self, X, training=False):
         Z = X @ self.weights + self.biases
         return Z
     
     @Layer.backward
-    def backward(self, dJ_dZ):
+    def backward(self, dJ_dZ, training=False):
         # compute the gradients with respect to the weights
         X = self.cache['X']
         dJ_dW = X.T @ dJ_dZ
@@ -126,12 +127,12 @@ class ReLU(Layer):
         self.output_shape = self.input_shape
         
     @Layer.forward
-    def forward(self, X):
+    def forward(self, X, training=False):
         Z = np.maximum(0, X)
         return Z
     
     @Layer.backward
-    def backward(self, dJ_dZ):
+    def backward(self, dJ_dZ, training=False):
         X = self.cache['X']
         dJ_dX = dJ_dZ * np.heaviside(X, 0)
         return dJ_dX
@@ -144,12 +145,12 @@ class Tanh(Layer):
         self.output_shape = self.input_shape
     
     @Layer.forward
-    def forward(self, X):
+    def forward(self, X, training=False):
         Z = np.tanh(X)
         return Z
     
     @Layer.backward
-    def backward(self, dJ_dZ):
+    def backward(self, dJ_dZ, training=False):
         Z = self.cache['Z']
         dJ_dX = dJ_dZ * (1 - np.square(Z))
         return dJ_dX
@@ -161,12 +162,12 @@ class Sigmoid(Layer):
         self.output_shape = self.input_shape
 
     @Layer.forward 
-    def forward(self, X):
+    def forward(self, X, training=False):
         Z = 1 / (1 + np.exp(-X))
         return Z
     
     @Layer.backward
-    def backward(self, dJ_dZ):
+    def backward(self, dJ_dZ, training=False):
         Z = self.cache['Z']
         dJ_dX = dJ_dZ * Z * (1 - Z)
         return dJ_dX
@@ -179,16 +180,47 @@ class Softmax(Layer):
         self.output_shape = self.input_shape
         
     @Layer.forward
-    def forward(self, X, *args, **kwargs):
+    def forward(self, X, training=False):
         X = X - np.max(X, axis=-1, keepdims=True)
         exp_X = np.exp(X)
         Z = exp_X / exp_X.sum(axis=-1, keepdims=True)
         return Z
     
     @Layer.backward
-    def backward(self, dJ_dZ):
+    def backward(self, dJ_dZ, training=False):
         # dJ_dX = dJ_dZ * Z - (dJ_dZ @ Z.T * np.eye(m)) @ Z  # -> needs a lot (m^2) of memory
         
         Z = self.cache['Z']
         dJ_dX = (dJ_dZ - np.sum(dJ_dZ * Z, axis=-1, keepdims=True)) * Z
+        return dJ_dX
+
+
+class Dropout(Layer):
+    def __init__(self, drop_rate, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.drop_rate = drop_rate
+
+    def build(self, *args, **kwargs):
+        super().build(*args, **kwargs)
+
+        self.output_shape = self.input_shape
+    
+    @Layer.forward
+    def forward(self, X, training=False):
+        if training:
+            mask = (np.random.rand(*X.shape) >= self.drop_rate).astype(int)
+            self.cache['mask'] = mask
+            Z = X * mask / (1 - self.drop_rate)
+        else:
+            Z = X
+        return Z
+    
+    @Layer.backward
+    def backward(self, dJ_dZ, training=False):
+        if training:
+            mask = self.cache['mask']
+            dJ_dX = dJ_dZ * mask / (1 - self.drop_rate)
+        else:
+            dJ_dX = dJ_dZ
         return dJ_dX

@@ -11,6 +11,7 @@ This project is for learning purposes only, and because I enjoy implementing thi
   - Tanh
   - Sigmoid
   - Softmax
+  - Dropout
 - Loss Functions:
   - Mean Squared Error (MSE)
   - Binary cross-entropy

@@ -12,12 +12,13 @@ class Model(object):
     def __call__(self, X, *args, **kwargs):
         return self.forward(X, *args, **kwargs)
     
-    def forward(self, X, cache=False, *args, **kwargs):
+    def forward(self, X, training=False, *args, **kwargs):
         """
         Computes the model's output (forward pass)
         
-        If cache is True, the input to each layer is stored so that it can be used later during
-        backprop
+        If training is True variables that need to be stored during training are kept in a cache
+        dictionary for each layer. Also, some layers such as Dropout behave differently if
+        training is set to True.
         """
 
         return X
@@ -134,16 +135,16 @@ class Sequential(Model):
         layer.build()
         self.layers.append(layer)
     
-    def forward(self, X, cache=False):
+    def forward(self, X, training=False):
         Y_pred = X
         for layer in self.layers:
-            Y_pred = layer(Y_pred, cache=cache)
+            Y_pred = layer(Y_pred, training=training)
             
         return Y_pred
     
     def train_step(self, X, Y, learning_rate=0.01):
         # forward pass
-        Y_pred = self.forward(X, cache=True)
+        Y_pred = self.forward(X, training=True)
         
         # compute the gradient of the loss with respect to the Y_pred
         dJ_dY = self.loss.backward(Y, Y_pred)
@@ -155,7 +156,7 @@ class Sequential(Model):
             layer = self.layers[l]
             
             # backpropagate through this layer and update its parameters
-            grads = layer.backward(dJ_dZ)
+            grads = layer.backward(dJ_dZ, training=True)
             if isinstance(grads, tuple):
                 dJ_dZ = grads[0]
                 layer.update_parameters(*grads[1:], learning_rate)
