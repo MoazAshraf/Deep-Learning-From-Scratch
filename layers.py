@@ -117,9 +117,9 @@ class Linear(Layer):
         
         return dJ_dX, dJ_dW, dJ_db
     
-    def update_parameters(self, dJ_dW, dJ_db, learning_rate):
-        self.weights = self.weights - learning_rate * dJ_dW
-        self.biases = self.biases - learning_rate * dJ_db
+    def update_parameters(self, dJ_dW, dJ_db, optimizer):
+        self.weights = optimizer.optimize(self.weights, dJ_dW)
+        self.biases = optimizer.optimize(self.biases, dJ_db)
 
 
 class ReLU(Layer):

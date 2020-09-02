@@ -26,3 +26,5 @@ This project is for learning purposes only, and because I enjoy implementing thi
 - Initializers:
   - Random Normal
   - He Normal
+- Optimizers:
+  - SGD

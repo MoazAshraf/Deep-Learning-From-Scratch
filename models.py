@@ -1,4 +1,5 @@
 import numpy as np
+from optimizers import SGD
 
 
 class Model(object):
@@ -23,7 +24,7 @@ class Model(object):
 
         return X
     
-    def configure(self, loss, learning_rate, metrics=None):
+    def configure(self, loss, optimizer=SGD(), metrics=None):
         """
         Configure the model for training or evaluation
 
@@ -32,7 +33,7 @@ class Model(object):
         """
 
         self.loss = loss
-        self.learning_rate = learning_rate
+        self.optimizer = optimizer
         self.metrics = metrics
         if self.metrics is None:
             self.metrics = {}
@@ -81,7 +82,7 @@ class Model(object):
         s = '\t'.join([f"{name}={value:.6f}" for name, value in metrics.items()])
         return s
 
-    def train_step(self, X, Y, learning_rate, *args, **kwargs):
+    def train_step(self, X, Y, *args, **kwargs):
         """
         Performs backpropagation through the model and updates the model's parameters using the
         training batch (X, Y).
@@ -118,7 +119,7 @@ class Model(object):
                 batch_end = batch_start + batch_size
                 X_batch = X[batch_start:batch_end]
                 Y_batch = Y[batch_start:batch_end]
-                self.train_step(X_batch, Y_batch, self.learning_rate, *args, **kwargs)
+                self.train_step(X_batch, Y_batch, *args, **kwargs)
             
             if verbose:
                 # make predictions on the training set
@@ -164,7 +165,7 @@ class Sequential(Model):
             
         return Y_pred
     
-    def train_step(self, X, Y, learning_rate=0.01):
+    def train_step(self, X, Y):
         # forward pass
         Y_pred = self.forward(X, training=True)
         
@@ -181,6 +182,6 @@ class Sequential(Model):
             grads = layer.backward(dJ_dZ, training=True)
             if isinstance(grads, tuple):
                 dJ_dZ = grads[0]
-                layer.update_parameters(*grads[1:], learning_rate)
+                layer.update_parameters(*grads[1:], self.optimizer)
             else:
                 dJ_dZ = grads
