@@ -89,14 +89,36 @@ class Model(object):
 
         pass
     
-    def train(self, X, Y, X_val=None, Y_val=None, epochs=10, verbose=True, *args, **kwargs):
+    def train(self, X, Y, X_val=None, Y_val=None, epochs=10, batch_size=32, drop_remainder=True, shuffle=True, verbose=True, *args, **kwargs):
         """
         Performs backpropagation through the model and updates the model's parameters using the
         training set for the given number of epochs (X, Y).
+
+        - X_val and Y_val can be set to evaluate the model on validation data after each epoch.
+        - If drop_remainder is True, the last batch will be dropped if its size is less than
+          batch_size.
+        - If shuffle is True, the training set will be shuffled before each epoch.
         """
-        
+
         for epoch in range(epochs):
-            self.train_step(X, Y, self.learning_rate, *args, **kwargs)
+            # shuffle the training set
+            if shuffle:
+                indices = np.random.permutation(X.shape[0])
+                X = X[indices]
+                Y = Y[indices]
+
+            # drop the last minibatch if its size is less than batch_sze
+            if drop_remainder:
+                train_size = (X.shape[0] // batch_size) * batch_size
+            else:
+                train_size = X.shape[0]
+
+            # loop over each batch and train the model 
+            for batch_start in range(0, train_size, batch_size):
+                batch_end = batch_start + batch_size
+                X_batch = X[batch_start:batch_end]
+                Y_batch = Y[batch_start:batch_end]
+                self.train_step(X_batch, Y_batch, self.learning_rate, *args, **kwargs)
             
             if verbose:
                 # make predictions on the training set
