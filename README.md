@@ -28,3 +28,4 @@ This project is for learning purposes only, and because I enjoy implementing thi
   - He Normal
 - Optimizers:
   - SGD
+  - SGD with Momentum

@@ -10,6 +10,7 @@ class Layer(object):
     def __init__(self, input_shape=None):
         self.input_shape = input_shape
         self.cache = {'X': None}
+        self.optimizer_params = {}
     
     def build(self):
         """
@@ -60,7 +61,7 @@ class Layer(object):
             return f(self, dJ_dZ, training=training, *args, **kwargs)
         return backward
 
-    def update_parameters(self, learning_rate):
+    def update_parameters(self, optimizer):
         """
         Updates the layer's parameters
         """
@@ -93,6 +94,9 @@ class Linear(Layer):
             self.biases = biases
         else:
             self.biases = np.zeros((1, self.units))
+        
+        self.optimizer_params['weights'] = None
+        self.optimizer_params['biases'] = None
     
     @Layer.forward
     def forward(self, X, training=False):
@@ -118,8 +122,10 @@ class Linear(Layer):
         return dJ_dX, dJ_dW, dJ_db
     
     def update_parameters(self, dJ_dW, dJ_db, optimizer):
-        self.weights = optimizer.optimize(self.weights, dJ_dW)
-        self.biases = optimizer.optimize(self.biases, dJ_db)
+        self.weights, self.optimizer_params['weights'] = optimizer.optimize(self.weights, dJ_dW,
+                                                                            self.optimizer_params['weights'])
+        self.biases, self.optimizer_params['biases'] = optimizer.optimize(self.biases, dJ_db,
+                                                                          self.optimizer_params['biases'])
 
 
 class ReLU(Layer):
