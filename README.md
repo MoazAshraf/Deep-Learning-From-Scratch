@@ -29,3 +29,4 @@ This project is for learning purposes only, and because I enjoy implementing thi
 - Optimizers:
   - SGD
   - SGD with Momentum
+  - RMSprop
