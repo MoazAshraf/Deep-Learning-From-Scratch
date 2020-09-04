@@ -24,7 +24,7 @@ class Model(object):
 
         return X
     
-    def configure(self, loss, optimizer=SGD(), metrics=None):
+    def configure(self, loss, optimizer=SGD(learning_rate=0.01), metrics=None):
         """
         Configure the model for training or evaluation
 
@@ -101,6 +101,8 @@ class Model(object):
         - If shuffle is True, the training set will be shuffled before each epoch.
         """
 
+        history = []
+
         for epoch in range(epochs):
             # shuffle the training set
             if shuffle:
@@ -121,20 +123,24 @@ class Model(object):
                 Y_batch = Y[batch_start:batch_end]
                 self.train_step(X_batch, Y_batch, *args, **kwargs)
             
-            if verbose:
-                # make predictions on the training set
-                Y_pred = self.forward(X)
+            # make predictions on the training set
+            Y_pred = self.forward(X)
 
-                # make predictions on the validation set
-                if X_val is not None:
-                    Y_val_pred = self.forward(X_val)
-                else:
-                    Y_val_pred = None
-                
-                # compute and print the metrics
-                metrics = self._evaluate(Y, Y_pred, Y_val, Y_val_pred)
+            # make predictions on the validation set
+            if X_val is not None:
+                Y_val_pred = self.forward(X_val)
+            else:
+                Y_val_pred = None
+            
+            # compute the metrics and store them in history
+            metrics = self._evaluate(Y, Y_pred, Y_val, Y_val_pred)
+            history.append(metrics)
+
+            if verbose:
                 epoch_info = f"Epoch {epoch+1:02}\t" + self.format_metrics(metrics)
                 print(epoch_info)
+        
+        return history
 
 
 class Sequential(Model):

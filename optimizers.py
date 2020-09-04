@@ -29,7 +29,7 @@ class SGD(Optimizer):
     w = w - learning_rate * m
     """
 
-    def __init__(self, learning_rate=0.01, momentum_beta=0.0):
+    def __init__(self, learning_rate, momentum_beta=0.0):
         self.learning_rate = learning_rate
         self.momentum_beta = momentum_beta
     

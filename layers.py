@@ -232,3 +232,29 @@ class Dropout(Layer):
         else:
             dJ_dX = dJ_dZ
         return dJ_dX
+
+
+class BatchNormalization(Layer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # TODO
+    
+    def build(self, *args, **kwargs):
+        super().build(*args, **kwargs)
+
+        self.output_shape = self.input_shape
+
+        # TODO
+    
+    @Layer.forward
+    def forward(self, X, training=False):
+        
+        # TODO
+        pass
+
+    @Layer.backward
+    def backward(self, dJ_dZ, training=False):
+        
+        # TODO
+        pass
