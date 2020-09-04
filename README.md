@@ -30,3 +30,4 @@ This project is for learning purposes only, and because I enjoy implementing thi
   - SGD
   - SGD with Momentum
   - RMSprop
+  - Adam
