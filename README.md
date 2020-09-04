@@ -74,3 +74,8 @@ You can find more examples in the demos folder.
 
 ## Dependencies:
 - [NumPy](https://numpy.org/). That's it!
+
+## License:
+MIT License
+
+Copyright (c) 2020 Moaz Ashraf
