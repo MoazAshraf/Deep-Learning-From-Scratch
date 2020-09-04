@@ -1,7 +1,47 @@
 # Deep Learning From Scratch
-Implementation of deep learning algorithms from scratch, inspired by PyTorch and Keras.
+In this project, I attempt to implement deep learning algorithms from scratch. The
+purpose of this is to make sure I understand the theory behind deep learning. And
+personally, it's very rewarding to build things from the ground up.
 
-This project is for learning purposes only, and because I enjoy implementing things from scratch.
+The structure of the library is inspired by PyTorch and Keras. Although I tried to use
+vectorization wherever possible, my code is not as efficient as that of these popular
+libraries but it still gets the job done (at least if you're training on MNIST). Also,
+there's no GPU support or use of threading, at least for the moment.
+
+Here's an example of how to use the library:
+
+```python
+from models import Sequential
+from layers import Linear, ReLU, Softmax
+from losses import CategoricalCrossentropy
+from metrics import categorical_accuracy
+from optimizers import SGD
+
+# create the model
+model = Sequential()
+model.add(Linear(128, input_shape=(784,)))
+model.add(ReLU())
+model.add(Linear(64))
+model.add(ReLU())
+model.add(Linear(10))
+model.add(Softmax())
+
+# configure the model for training
+model.configure(loss=CategoricalCrossentropy(),
+                optimizer=SGD(learning_rate=0.01),
+                metrics={"acc": categorical_accuracy})
+
+# train the model
+history = model.train(X_train, y_train, X_test, y_test, epochs=100)
+```
+
+```
+Epoch 01	loss=1.083168	val_loss=1.117989	acc=0.753333	val_acc=0.720000
+...
+Epoch 100	loss=0.017159	val_loss=0.237937	acc=0.999000	val_acc=0.939000
+```
+
+You can find more examples in the demos folder.
 
 ## Features:
 - Sequential model
@@ -31,3 +71,6 @@ This project is for learning purposes only, and because I enjoy implementing thi
   - SGD with Momentum
   - RMSprop
   - Adam
+
+## Dependencies:
+- [NumPy](https://numpy.org/). That's it!
