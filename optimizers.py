@@ -68,7 +68,7 @@ class RMSprop(Optimizer):
         if vars is None:
             vars = {'v': np.zeros(w.shape)}
         v = vars['v']
-        
+
         v = self.beta * v + (1 - self.beta) * np.square(dJ_dw)
         w = w - self.learning_rate * dJ_dw / (np.sqrt(v) + self.epsilon)
 
@@ -94,8 +94,7 @@ class Adam(Optimizer):
         self.beta_2 = beta_2
         self.epsilon = epsilon
     
-    def optimize(self, w, dJ_dw, vars=None):        
-        np.seterr(all='raise')
+    def optimize(self, w, dJ_dw, vars=None):
         if vars is None:
             vars = {
                 't': 1,
@@ -105,9 +104,6 @@ class Adam(Optimizer):
         t = vars['t']
         m = vars['m']
         v = vars['v']
-
-        collapse_to_zero(m)
-        collapse_to_zero(v)
 
         m = (self.beta_1 * m + (1 - self.beta_1) * dJ_dw)
         v = (self.beta_2 * v + (1 - self.beta_2) * np.square(dJ_dw))
