@@ -22,17 +22,22 @@ class MSE(Loss):
     
     def backward(self, Y_true, Y_pred):
         size = Y_true.size
+        
         dJ_dY_pred = 2 * (Y_pred - Y_true) / size
         return dJ_dY_pred
 
 
 class BinaryCrossentropy(Loss):
-    def forward(self, Y_true, Y_pred):
+    def forward(self, Y_true, Y_pred, epsilon=1e-8):
+        Y_pred = np.clip(Y_pred, epsilon, 1 - epsilon)
+
         J = -np.mean(Y_true * np.log(Y_pred) + (1 - Y_true) * np.log(1 - Y_pred))
         return J
     
-    def backward(self, Y_true, Y_pred):
+    def backward(self, Y_true, Y_pred, epsilon=1e-8):
+        Y_pred = np.clip(Y_pred, epsilon, 1 - epsilon)
         size = Y_true.size
+
         dJ_dY_pred = ((1 - Y_true) / (1 - Y_pred) - Y_true / Y_pred) / size
         return dJ_dY_pred
 
@@ -42,12 +47,16 @@ class CategoricalCrossentropy(Loss):
     Expects Y_true to be one-hot encoded and Y_pred to be normalized probabilities (e.g.
     the output of a Softmax layer)
     """
-    def forward(self, Y_true, Y_pred):
+    def forward(self, Y_true, Y_pred, epsilon=1e-8):
+        Y_pred = np.clip(Y_pred, epsilon, 1 - epsilon)
         m = Y_true.shape[0]
+
         J =  -np.sum(Y_true * np.log(Y_pred)) / m
         return J
     
-    def backward(self, Y_true, Y_pred):
+    def backward(self, Y_true, Y_pred, epsilon=1e-8):
+        Y_pred = np.clip(Y_pred, epsilon, 1 - epsilon)
         m = Y_true.shape[0]
+
         dJ_dY_pred = -(Y_true / Y_pred) / m
         return dJ_dY_pred
