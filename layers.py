@@ -78,12 +78,13 @@ class Linear(Layer):
         super().__init__(*args, **kwargs)
         
         self.units = units
-        self.output_shape = (units,)
         self.kernel_regularizer = kernel_regularizer
         self.kernel_initializer = kernel_initializer
     
     def build(self, weights=None, biases=None, *args, **kwargs):
         super().build(*args, **kwargs)
+
+        self.output_shape = (self.units,)
 
         if weights is not None:
             self.weights = weights
@@ -235,26 +236,68 @@ class Dropout(Layer):
 
 
 class BatchNormalization(Layer):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, epsilon=1e-8, *args, **kwargs):
+        super().__init__(self, *args, **kwargs)
 
-        # TODO
-    
-    def build(self, *args, **kwargs):
+        self.epsilon = epsilon
+
+    def build(self, gamma=None, beta=None, *args, **kwargs):
         super().build(*args, **kwargs)
 
         self.output_shape = self.input_shape
 
-        # TODO
+        if beta is not None:
+            self.beta = beta
+        else:
+            self.beta = np.zeros((1,) + self.input_shape)
+        
+        if gamma is not None:
+            self.gamma = gamma
+        else:
+            self.gamma = np.ones((1,) + self.input_shape)
+        
+        self.optimizer_params['gamma'] = None
+        self.optimizer_params['beta'] = None
     
     @Layer.forward
     def forward(self, X, training=False):
-        
-        # TODO
-        pass
+        X_mean = np.mean(X, axis=0, keepdims=True)
+        X_var = np.mean(np.square(X - X_mean), axis=0, keepdims=True)
+        X_hat = (X - X_mean) / (np.sqrt(X_var) + self.epsilon)
+        Z = self.gamma * X_hat + self.beta
+
+        if training:
+            self.cache['X_hat'] = X_hat
+            self.cache['X_mean'] = X_mean
+            self.cache['X_var'] = X_var
+        return Z
 
     @Layer.backward
     def backward(self, dJ_dZ, training=False):
+        X = self.cache['X']
+        X_hat = self.cache['X_hat']
+        X_mean = self.cache['X_mean']
+        X_var = self.cache['X_var']
         
-        # TODO
-        pass
+        m = X.shape[0]
+
+        dJ_dgamma = np.sum(dJ_dZ * X_hat, axis=0, keepdims=True)
+        dJ_dbeta = np.sum(dJ_dZ, axis=0, keepdims=True)
+        
+        dJ_dX_hat = dJ_dZ * self.gamma
+        
+        minus = X - X_mean
+        denom = (np.sqrt(X_var) + self.epsilon)
+
+        dminus_dX = 1 - X / m
+        ddenom_dX = (2 / m) * (X - X_mean) * dminus_dX / denom
+        dX_hat_dX = (denom * dminus_dX - minus * ddenom_dX) / np.square(denom)
+        dJ_dX = dJ_dX_hat * dX_hat_dX
+
+        return dJ_dX, dJ_dgamma, dJ_dbeta
+    
+    def update_parameters(self, dJ_dgamma, dJ_dbeta, optimizer):
+        self.gamma, self.optimizer_params['gamma'] = optimizer.optimize(self.gamma, dJ_dgamma,
+                                                                            self.optimizer_params['gamma'])
+        self.beta, self.optimizer_params['beta'] = optimizer.optimize(self.beta, dJ_dbeta,
+                                                                          self.optimizer_params['beta'])

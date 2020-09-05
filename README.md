@@ -52,6 +52,7 @@ You can find more examples in the demos folder.
   - Sigmoid
   - Softmax
   - Dropout
+  - Batch Normalization
 - Loss Functions:
   - Mean Squared Error (MSE)
   - Binary cross-entropy
