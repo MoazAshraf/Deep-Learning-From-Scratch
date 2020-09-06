@@ -4,11 +4,11 @@ purpose of this is to make sure I understand the theory behind deep learning. An
 personally, it's very rewarding to build things from the ground up.
 
 The structure of the library is inspired by PyTorch and Keras. Although I tried to use
-vectorization wherever possible, my code is not as efficient as that of these popular
-libraries but it still gets the job done (at least if you're training on MNIST). Also,
+vectorization wherever possible, my code is not the most efficient in the world (surprise!)
+but it still gets the job done (at least if you're training on MNIST). Also,
 there's no GPU support or use of threading, at least for the moment.
 
-Here's an example of how to use the library:
+Here's an example of how to create and train a model:
 
 ```python
 from models import Sequential
@@ -74,9 +74,14 @@ You can find more examples in the demos folder.
   - Adam
 
 ## Dependencies:
-- [NumPy](https://numpy.org/). That's it!
+The only real dependency is [NumPy](https://numpy.org/). However, I use other
+libraries such as Scikit-Learn in the demos because they are convenient.
+You can view or install all the dependencies using the [requirements.txt](requirements.txt) file.
+For example in pip:
+
+```
+pip install -r requirements.txt
+```
 
 ## License:
-MIT License
-
-Copyright (c) 2020 Moaz Ashraf
+MIT License, check the [LICENSE](LICENSE) file.

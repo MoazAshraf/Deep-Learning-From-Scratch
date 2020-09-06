@@ -102,6 +102,8 @@ class Model(object):
         """
 
         history = []
+        if batch_size > X.shape[0]:
+            drop_remainder = False
 
         for epoch in range(epochs):
             # shuffle the training set
@@ -116,7 +118,7 @@ class Model(object):
             else:
                 train_size = X.shape[0]
 
-            # loop over each batch and train the model 
+            # loop over each batch and train the model
             for batch_start in range(0, train_size, batch_size):
                 batch_end = batch_start + batch_size
                 X_batch = X[batch_start:batch_end]
