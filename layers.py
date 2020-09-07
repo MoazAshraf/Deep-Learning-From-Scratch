@@ -301,3 +301,88 @@ class BatchNormalization(Layer):
                                                                             self.optimizer_params['gamma'])
         self.beta, self.optimizer_params['beta'] = optimizer.optimize(self.beta, dJ_dbeta,
                                                                           self.optimizer_params['beta'])
+
+
+class Conv2D(Layer):
+    """
+    2D convolution layer
+
+    Specify the number of output channels using the filters argument.
+    For each of kernel_size, stride and padding, if an integer is provided,
+    the both dimensions will be set to that integer.
+    """
+    
+    def __init__(self, filters, kernel_size, stride=(1,1), kernel_regularizer=None, kernel_initializer=he_normal, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # convolutional layer hyperparameters
+        self.filters = filters
+        if isinstance(kernel_size, int):
+            kernel_size = (kernel_size, kernel_size)
+        if isinstance(stride, int):
+            stride = (stride, stride)
+        self.kernel_size = kernel_size
+        self.stride = stride
+
+        # other hyperparameters
+        self.kernel_regularizer = kernel_regularizer
+        self.kernel_initializer = kernel_initializer
+    
+    def build(self, kernels=None, biases=None, *args, **kwargs):
+        super().build(*args, **kwargs)
+
+        h_in, w_in, c_in = self.input_shape
+        h_out = int((h_in - self.kernel_size[0]) / self.stride[0] + 1)
+        w_out = int((w_in - self.kernel_size[1]) / self.stride[1] + 1)
+        c_out = self.filters
+        self.output_shape = (h_out, w_out, c_out)
+
+        if kernels is not None:
+            self.kernels = kernels
+        else:
+            self.kernels = self.kernel_initializer((c_out, self.kernel_size[0], self.kernel_size[1], c_in))
+            
+        if biases is not None:
+            self.biases = biases
+        else:
+            self.biases = np.zeros((c_out,))
+        
+        self.optimizer_params['kernels'] = None
+        self.optimizer_params['biases'] = None
+    
+    @Layer.forward
+    def forward(self, X, training=False):
+        """
+        X has the shape (m, h_in, w_in, c_in)
+        """
+
+        m = X.shape[0]
+        h_out, w_out, c_out = self.output_shape
+        k_y, k_x = self.kernel_size
+        s_y, s_x = self.stride
+
+        Z = np.zeros((m,) + self.output_shape)
+        for i in range(m):
+            for y_out in range(h_out):
+                y_in_start = y_out * s_y
+                y_in_end = y_in_start + k_y
+                for x_out in range(w_out):
+                    x_in_start = x_out * s_x
+                    x_in_end = x_in_start + k_x
+                    
+                    X_slice = X[i,y_in_start:y_in_end,x_in_start:x_in_end,:]
+                    for f in range(c_out):
+                        Z[i,y_out,x_out,f] = np.sum(self.kernels[f] * X_slice) + self.biases[f]
+
+        return Z
+    
+    @Layer.backward
+    def backward(self, dJ_dZ, training=False):
+        # TODO
+        return dJ_dZ
+    
+    def update_parameters(self, dJ_dW, dJ_db, optimizer):
+        self.kernels, self.optimizer_params['kernels'] = optimizer.optimize(self.kernels, dJ_dW,
+                                                                            self.optimizer_params['kernels'])
+        self.biases, self.optimizer_params['biases'] = optimizer.optimize(self.biases, dJ_db,
+                                                                          self.optimizer_params['biases'])
